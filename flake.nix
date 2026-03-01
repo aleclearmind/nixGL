@@ -10,7 +10,7 @@
         isIntelX86Platform = system == "x86_64-linux";
         pkgs = import ./default.nix {
           pkgs = nixpkgs.legacyPackages.${system};
-          enable32bits = isIntelX86Platform;
+          enable32bits = false;
           enableIntelX86Extensions = isIntelX86Platform;
         };
       in rec {
@@ -37,7 +37,7 @@
           in {
             nixgl = import ./default.nix {
               pkgs = final;
-              enable32bits = isIntelX86Platform;
+              enable32bits = false;
               enableIntelX86Extensions = isIntelX86Platform;
             };
           };

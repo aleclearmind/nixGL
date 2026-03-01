@@ -16,7 +16,7 @@ rhelMajorVersion ? 9,
 # Enable 32 bits driver
 # This is one by default, you can switch it to off if you want to reduce a
 # bit the size of nixGL closure.
-enable32bits ? stdenv.hostPlatform.isx86, stdenv, writeTextFile, shellcheck
+enable32bits ? false, stdenv, writeTextFile, shellcheck
 , pcre, runCommand, linuxPackages, fetchurl, lib, runtimeShell, bumblebee
 , libglvnd, vulkan-validation-layers, mesa, libvdpau-va-gl, intel-media-driver
 , pkgsi686Linux, driversi686Linux, zlib, libdrm, xorg, wayland, gcc, zstd, rpm
@@ -47,9 +47,9 @@ let
       # add the 32 bits drivers if needed
       text = let
         mesa-drivers = [ mesa.drivers ]
-          ++ lib.optional enable32bits pkgsi686Linux.mesa.drivers;
+          ++ lib.optional false pkgsi686Linux.mesa.drivers;
         libvdpau = [ libvdpau-va-gl ]
-          ++ lib.optional enable32bits pkgsi686Linux.libvdpau-va-gl;
+          ++ lib.optional false pkgsi686Linux.libvdpau-va-gl;
         glxindirect = runCommand "mesa_glxindirect" { } (''
           mkdir -p $out/lib
           ln -s ${mesa.drivers}/lib/libGLX_mesa.so.0 $out/lib/libGLX_indirect.so.0
@@ -64,7 +64,7 @@ let
         }
         ${''
           export __EGL_VENDOR_LIBRARY_FILENAMES=${mesa.drivers}/share/glvnd/egl_vendor.d/50_mesa.json${
-            lib.optionalString enable32bits
+            lib.optionalString false
             ":${pkgsi686Linux.mesa.drivers}/share/glvnd/egl_vendor.d/50_mesa.json"
           }"''${__EGL_VENDOR_LIBRARY_FILENAMES:+:$__EGL_VENDOR_LIBRARY_FILENAMES}"''}
         export LD_LIBRARY_PATH=${lib.makeLibraryPath mesa-drivers}:${
@@ -167,7 +167,7 @@ let
             }
           }/bin/optirun --ldpath ${
             lib.makeLibraryPath ([ libglvnd nvidiaDrivers ]
-              ++ lib.optionals enable32bits [
+              ++ lib.optionals false [
                 nvidiaDrivers.lib32
                 pkgsi686Linux.libglvnd
               ])
@@ -184,25 +184,23 @@ let
             ${lib.optionalString (api == "Vulkan")
             "export VK_LAYER_PATH=${vulkan-validation-layers}/share/vulkan/explicit_layer.d"}
             NVIDIA_JSON=(${nvidiaLibsOnly}/share/glvnd/egl_vendor.d/*nvidia.json)
-            ${lib.optionalString enable32bits
-            "NVIDIA_JSON32=(${nvidiaLibsOnly.lib32}/share/glvnd/egl_vendor.d/*nvidia.json)"}
 
             ${''
               export __EGL_VENDOR_LIBRARY_FILENAMES=''${NVIDIA_JSON[*]}${
-                lib.optionalString enable32bits ":\${NVIDIA_JSON32[*]}"
+                lib.optionalString false ":\${NVIDIA_JSON32[*]}"
               }"''${__EGL_VENDOR_LIBRARY_FILENAMES:+:$__EGL_VENDOR_LIBRARY_FILENAMES}"''}
 
               ${
                 lib.optionalString (api == "Vulkan") ''
                   export VK_ICD_FILENAMES=${nvidiaLibsOnly}/share/vulkan/icd.d/nvidia_icd.x86_64.json${
-                    lib.optionalString enable32bits
+                    lib.optionalString false
                     ":${nvidiaLibsOnly.lib32}/share/vulkan/icd.d/nvidia_icd.i686.json"
                   }"''${VK_ICD_FILENAMES:+:$VK_ICD_FILENAMES}"''
               }
               export LD_LIBRARY_PATH=${
                 lib.makeLibraryPath ([ libglvnd nvidiaLibsOnly ]
                   ++ lib.optional (api == "Vulkan") vulkan-validation-layers
-                  ++ lib.optionals enable32bits [
+                  ++ lib.optionals false [
                     nvidiaLibsOnly.lib32
                     pkgsi686Linux.libglvnd
                   ])
@@ -221,7 +219,7 @@ let
     nixGLMesa = writeNixGL "nixGLMesa" [ ];
 
     nixGLIntel = writeNixGL "nixGLIntel" ([ intel-media-driver ]
-      ++ lib.optionals enable32bits [ pkgsi686Linux.intel-media-driver ]);
+      ++ lib.optionals false [ pkgsi686Linux.intel-media-driver ]);
 
     nixVulkanMesa = writeExecutable {
       name = "nixVulkanIntel";
@@ -233,7 +231,7 @@ let
             ls ${mesa.drivers}/share/vulkan/icd.d/*.json > f
           ''
           #  32 bits ones
-          + lib.optionalString enable32bits ''
+          + lib.optionalString false ''
             ls ${pkgsi686Linux.mesa.drivers}/share/vulkan/icd.d/*.json >> f
           ''
           # concat everything as a one line string with ":" as seperator
@@ -295,7 +293,7 @@ let
       # Get if from the nvidiaVersionFile
         let
           data = builtins.readFile _nvidiaVersionFile;
-          versionMatch = builtins.match ".*Module  ([0-9.]+)  .*" data;
+          versionMatch = builtins.match ".*Module .*  ([0-9.]+)  .*" data;
         in if versionMatch != null then builtins.head versionMatch else null;
 
       autoNvidia = nvidiaPackages { version = nvidiaVersionAuto; };

@@ -12,7 +12,7 @@
   # Enable 32 bits driver
   # This is on by default, you can switch it to off if you want to reduce a
   # bit the size of nixGL closure.
-  enable32bits ? true,
+  enable32bits ? false,
   # Make sure to enable config.allowUnfree to the instance of nixpkgs to be
   # able to access the nvidia drivers.
   pkgs ? import <nixpkgs> {
