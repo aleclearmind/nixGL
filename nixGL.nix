@@ -12,7 +12,7 @@ nvidiaVersionFile ? null,
 # Nvidia driver source selection: "driver" (default) or "rhel" (downloads RPMs from NVIDIA's RHEL repo)
 driverSource ? "rhel",
 # RHEL major version (e.g., 9 or 10) for NVIDIA RPM URLs. User must set this if using driverSource = "rhel"
-rhelMajorVersion ? 10,
+rhelMajorVersion ? 9,
 # Enable 32 bits driver
 # This is one by default, you can switch it to off if you want to reduce a
 # bit the size of nixGL closure.
