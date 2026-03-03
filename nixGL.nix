@@ -133,6 +133,7 @@ let
             (library: ''
               rpm2cpio ${library}.rpm | cpio -idmv
             '')
+            libraries
           )}
 
           mv usr/lib64/* $out/lib
