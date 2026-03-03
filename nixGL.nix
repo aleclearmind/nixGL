@@ -101,29 +101,42 @@ let
         null;
 
       # Extract NVIDIA shared libraries from RPM
-      nvidiaFromRpm = stdenv.mkDerivation {
+      nvidiaFromRpm = let
+        fetchRpm = name: builtins.fetchurl {
+          url = "https://developer.download.nvidia.com/compute/cuda/repos/rhel${toString rhelMajorVersion}/x86_64/${name}-${version}-1.el${toString rhelMajorVersion}.x86_64.rpm";
+        };
+        libraries = [
+          "libnvidia-ml"
+          "nvidia-driver-libs"
+          "nvidia-driver-cuda"
+          "nvidia-driver-cuda-libs"
+        ];
+      in stdenv.mkDerivation {
         pname = "nvidia";
         name = "nvidia-${version}-nixGL-rpm";
         version = version;
         preferLocalBuild = true;
         allowSubstitutes = false;
         nativeBuildInputs = [ rpm cpio ];
-        srcs = [ rpmLibs rpmMl ];
+        srcs = builtins.map fetchRpm libraries;
         unpackPhase = ''
           mkdir -p $TMPDIR
-          cp ${rpmLibs} $TMPDIR/nvidia-driver-libs.rpm
-          cp ${rpmMl} $TMPDIR/libnvidia-ml.rpm
+          ${builtins.concatStringsSep "\n" (builtins.map
+            (library: "cp ${fetchRpm library} ${library}.rpm")
+          )}
         '';
         buildPhase = ''
           mkdir -p $out $out/lib $out/share
           cd $TMPDIR
 
-          rpm2cpio nvidia-driver-libs.rpm | cpio -idmv
+          ${builtins.concatStringsSep "\n" (builtins.map
+            (library: ''
+              rpm2cpio ${library}.rpm | cpio -idmv
+            '')
+          )}
+
           mv usr/lib64/* $out/lib
           mv usr/share/* $out/share
-
-          rpm2cpio libnvidia-ml.rpm | cpio -idmv
-          mv usr/lib64/* $out/lib
         '';
       };
 
