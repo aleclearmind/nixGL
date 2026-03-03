@@ -123,6 +123,7 @@ let
           mkdir -p $TMPDIR
           ${builtins.concatStringsSep "\n" (builtins.map
             (library: "cp ${fetchRpm library} ${library}.rpm")
+            libraries
           )}
         '';
         buildPhase = ''
