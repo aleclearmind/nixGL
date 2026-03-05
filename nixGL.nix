@@ -127,7 +127,7 @@ let
           )}
         '';
         buildPhase = ''
-          mkdir -p $out $out/lib $out/share
+          mkdir -p $out $out/lib $out/share $out/bin
           cd $TMPDIR
 
           ${builtins.concatStringsSep "\n" (builtins.map
