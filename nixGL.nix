@@ -137,6 +137,7 @@ let
             libraries
           )}
 
+          mv usr/bin/* $out/bin
           mv usr/lib64/* $out/lib
           mv usr/share/* $out/share
         '';
